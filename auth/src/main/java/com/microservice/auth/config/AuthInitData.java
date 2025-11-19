@@ -35,7 +35,7 @@ public class AuthInitData {
 
                 authService.register(new User(
                     0L,
-                    "USER",
+                    "ADMIN",
                     "Raul Fernandez",
                     "ra.fernandez@duocuc.cl",
                     "20456789-5",
