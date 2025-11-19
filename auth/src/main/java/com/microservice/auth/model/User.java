@@ -1,13 +1,13 @@
 package com.microservice.auth.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "auth_table") 
 public class User {
@@ -36,24 +36,5 @@ public class User {
     public User(String email, String password) {
         this.email = email;
         this.password = password;
-    }
-
-    // Constructor completo para cargar usuarios iniciales
-    public User(
-        Long id,
-        String rol,
-        String name,
-        String email,
-        String phone,
-        String password,
-        String profileImagePath
-    ) {
-        this.id = id;
-        this.rol = rol;
-        this.name = name;
-        this.email = email;
-        this.phone = phone;
-        this.password = password;
-        this.profileImagePath = profileImagePath;
     }
 }

@@ -1,13 +1,15 @@
-package com.auth.config;
+package com.microservice.auth.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.auth.model.User;
-import com.auth.repository.UserRepository;
-import com.auth.service.AuthService;
+import com.microservice.auth.model.User;
+import com.microservice.auth.repository.UserRepository;
+import com.microservice.auth.service.AuthService;
+
+
 
 @Configuration
 public class AuthInitData {

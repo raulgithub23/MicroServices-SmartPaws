@@ -1,5 +1,11 @@
 package com.microservice.auth.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import com.microservice.auth.model.User;
+import com.microservice.auth.repository.UserRepository;
+
 @Service
 public class AuthService {
 

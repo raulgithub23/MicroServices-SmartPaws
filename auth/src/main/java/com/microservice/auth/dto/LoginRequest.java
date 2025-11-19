@@ -1,4 +1,4 @@
-package com.auth.dto;
+package com.microservice.auth.dto;
 
 public class LoginRequest {
 
