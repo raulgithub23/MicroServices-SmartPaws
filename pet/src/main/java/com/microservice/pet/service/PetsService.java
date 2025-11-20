@@ -88,4 +88,8 @@ public class PetsService {
         
         return guardarMascota(petActual);
     }
+
+    public List<Pets> buscarPorNombre(String nombre) {
+        return petsRepository.findByNameContainingIgnoreCase(nombre);
+    }
 }

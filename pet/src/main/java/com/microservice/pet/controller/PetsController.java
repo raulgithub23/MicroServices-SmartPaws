@@ -147,13 +147,11 @@ public class PetsController {
 
     @GetMapping("/buscar/nombre")
     public ResponseEntity<List<Pets>> buscarPorNombre(@RequestParam String nombre) {
-        List<Pets> pets = petsService.listarMascotas().stream()
-                .filter(p -> p.getName().toLowerCase().contains(nombre.toLowerCase()))
-                .toList(); 
-
-        if (pets.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(pets);
+    List<Pets> pets = petsService.buscarPorNombre(nombre); 
+    
+    if (pets.isEmpty()) {
+        return ResponseEntity.noContent().build();
     }
+    return ResponseEntity.ok(pets);
+}
 }
