@@ -161,4 +161,25 @@ public class AuthController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PostMapping("/doctor/create")
+    public ResponseEntity<?> createDoctor(
+    @RequestBody User doctorUser,
+    @RequestParam String adminRol
+    ) {
+        try {
+            if (!"ADMIN".equalsIgnoreCase(adminRol)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Acceso denegado: Solo administradores");
+            }
+
+            // Aseguramos que el rol sea DOCTOR
+            doctorUser.setRol("DOCTOR");
+            
+            User registered = service.register(doctorUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(registered);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
