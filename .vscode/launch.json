@@ -9,6 +9,16 @@
       "projectName": "auth",
       "args": "",
       "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-PetApplication<pet>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.microservice.pet.PetApplication",
+      "projectName": "pet",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
     }
   ]
 }
