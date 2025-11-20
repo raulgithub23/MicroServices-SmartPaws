@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.microservice.auth.dto.LoginRequest;
+import com.microservice.auth.dto.UpdateRoleRequest;
+import com.microservice.auth.dto.UserDetailDto;
 import com.microservice.auth.dto.UserListDto;
 import com.microservice.auth.model.User;
 import com.microservice.auth.service.AuthService;
@@ -39,11 +41,8 @@ public class AuthController {
         }
     }
 
-    /**
-     * ✅ NUEVO: Obtener usuario por ID
-     * Endpoint: GET /auth/user/{id}
-     * Cualquier usuario puede ver SU perfil
-     */
+    //Obtener usuario por ID cualquier usuario puede ver su perfil
+     
     @GetMapping("/user/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         try {
@@ -54,15 +53,103 @@ public class AuthController {
         }
     }
 
-    /**
-     * NUEVO: Obtener lista de usuarios (solo nombres)
-     * Endpoint: GET /auth/users?rol=ADMIN
-     * Solo usuarios con rol ADMIN pueden acceder
-     */
+    //Solo usuarios con rol ADMIN pueden acceder a la lista de usuarios (id, name, rol)
+
+    @GetMapping("/users/detailed")
+    public ResponseEntity<?> getAllUsersDetailed(@RequestParam String adminRol) {
+        try {
+            if (!"ADMIN".equalsIgnoreCase(adminRol)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Acceso denegado: Solo administradores");
+            }
+
+            List<UserDetailDto> users = service.getAllUsersDetailed();
+            return ResponseEntity.ok(users);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    //Buscar usuarios por nombre o email (solo ADMIN)
+    @GetMapping("/users/search")
+    public ResponseEntity<?> searchUsers(
+        @RequestParam String query,
+        @RequestParam String adminRol
+    ) {
+        try {
+            if (!"ADMIN".equalsIgnoreCase(adminRol)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Acceso denegado");
+            }
+
+            List<UserDetailDto> users = service.searchUsers(query);
+            return ResponseEntity.ok(users);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    //Filtrar usuarios por rol (solo ADMIN)
+    @GetMapping("/users/by-role")
+    public ResponseEntity<?> getUsersByRole(
+        @RequestParam String role,
+        @RequestParam String adminRol
+    ) {
+        try {
+            if (!"ADMIN".equalsIgnoreCase(adminRol)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Acceso denegado");
+            }
+
+            List<UserDetailDto> users = service.getUsersByRole(role);
+            return ResponseEntity.ok(users);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    //Actualizar rol de usuario (solo ADMIN)
+    @PutMapping("/user/{id}/role")
+    public ResponseEntity<?> updateUserRole(
+        @PathVariable Long id,
+        @RequestBody UpdateRoleRequest request,
+        @RequestParam String adminRol
+    ) {
+        try {
+            if (!"ADMIN".equalsIgnoreCase(adminRol)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Acceso denegado");
+            }
+
+            User updated = service.updateUserRole(id, request.getRol());
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    //Eliminar usuario (solo ADMIN)
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<?> deleteUser(
+        @PathVariable Long id,
+        @RequestParam String adminRol
+    ) {
+        try {
+            if (!"ADMIN".equalsIgnoreCase(adminRol)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Acceso denegado");
+            }
+
+            service.deleteUser(id);
+            return ResponseEntity.ok("Usuario eliminado exitosamente");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @GetMapping("/users")
     public ResponseEntity<?> getAllUsers(@RequestParam String rol) {
         try {
-            // Verificar que quien consulta sea ADMIN
             if (!"ADMIN".equalsIgnoreCase(rol)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Acceso denegado: Solo administradores pueden ver la lista de usuarios");

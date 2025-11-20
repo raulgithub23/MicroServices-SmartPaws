@@ -3,6 +3,7 @@ package com.microservice.auth.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.microservice.auth.dto.UserDetailDto;
 import com.microservice.auth.dto.UserListDto;
 import com.microservice.auth.model.User;
 import com.microservice.auth.repository.UserRepository;
@@ -18,8 +19,6 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    //Registro de usuario
-
     public User register(User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new RuntimeException("El email ya está en uso");
@@ -31,8 +30,6 @@ public class AuthService {
         return saved;
     }
 
-    //Login de usuario
-     
     public User login(String email, String password) {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
@@ -45,22 +42,78 @@ public class AuthService {
         return user;
     }
 
-    //Obtener usuario por ID
-     
     public User getUserById(Long id) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         
-        // No devolver la contraseña
         user.setPassword(null);
         return user;
     }
 
-    //Obtener lista de usuarios (solo nombres), Solo devuelve: id, name, rol
-     
     public List<UserListDto> getAllUsers() {
         return userRepository.findAll().stream()
             .map(user -> new UserListDto(user.getId(), user.getName(), user.getRol()))
             .collect(Collectors.toList());
+    }
+
+    public List<UserDetailDto> getAllUsersDetailed() {
+        return userRepository.findAll().stream()
+            .map(user -> new UserDetailDto(
+                user.getId(),
+                user.getRol(),
+                user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getProfileImagePath()
+            ))
+            .collect(Collectors.toList());
+    }
+
+    public List<UserDetailDto> searchUsers(String query) {
+        return userRepository.findAll().stream()
+            .filter(user -> 
+                user.getName().toLowerCase().contains(query.toLowerCase()) ||
+                user.getEmail().toLowerCase().contains(query.toLowerCase())
+            )
+            .map(user -> new UserDetailDto(
+                user.getId(),
+                user.getRol(),
+                user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getProfileImagePath()
+            ))
+            .collect(Collectors.toList());
+    }
+
+    public List<UserDetailDto> getUsersByRole(String rol) {
+        return userRepository.findAll().stream()
+            .filter(user -> user.getRol().equalsIgnoreCase(rol))
+            .map(user -> new UserDetailDto(
+                user.getId(),
+                user.getRol(),
+                user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getProfileImagePath()
+            ))
+            .collect(Collectors.toList());
+    }
+
+    public User updateUserRole(Long userId, String newRole) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        user.setRol(newRole);
+        User updated = userRepository.save(user);
+        updated.setPassword(null);
+        return updated;
+    }
+
+    public void deleteUser(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("Usuario no encontrado");
+        }
+        userRepository.deleteById(userId);
     }
 }
