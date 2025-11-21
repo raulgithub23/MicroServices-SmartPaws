@@ -1,133 +1,95 @@
 package com.microservice.interactions.controller;
 
-
-import java.util.List;
-
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.microservice.interactions.dto.AppointmentWithDetailsDTO;
-import com.microservice.interactions.model.Appointment;
+import com.microservice.interactions.dto.AppointmentRequestDto;
+import com.microservice.interactions.dto.AppointmentResponseDto;
 import com.microservice.interactions.service.AppointmentService;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/appointments")
-@Tag(name = "Citas Médicas", description = "API para gestión de citas médicas de mascotas")
+@Tag(name = "Appointments", description = "API para gestión de citas veterinarias")
 public class AppointmentController {
 
     @Autowired
     private AppointmentService appointmentService;
 
-
-    @Operation(summary = "Crear nueva cita", description = "Agenda una nueva cita médica.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Cita creada exitosamente",
-            content = @Content(mediaType = "application/json", 
-            schema = @Schema(implementation = Appointment.class))),
-        @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o error de validación")
-    })
-    @PostMapping()
-    public ResponseEntity<?> createAppointment(@RequestBody @Valid Appointment appointment) {
-        try {
-            Appointment newAppointment = appointmentService.createAppointment(appointment);
-            return ResponseEntity.status(HttpStatus.CREATED).body(newAppointment); // HTTP 201
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage()); // HTTP 400
-        }
+    @GetMapping
+    @Operation(summary = "Obtener historial general de citas")
+    public ResponseEntity<List<AppointmentResponseDto>> getAllAppointments() {
+        return ResponseEntity.ok(appointmentService.getAllAppointments());
     }
 
-    @Operation(summary = "Buscar cita por ID", description = "Obtiene los detalles de una cita específica por su ID.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Cita encontrada exitosamente",
-            content = @Content(mediaType = "application/json", 
-            schema = @Schema(implementation = AppointmentWithDetailsDTO.class))),
-        @ApiResponse(responseCode = "404", description = "Cita no encontrada")
-    })
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getAppointmentDetail(@PathVariable Long id) {
-        try {
-            AppointmentWithDetailsDTO dto = appointmentService.getAppointmentDetail(id);
-            return ResponseEntity.ok(dto); // HTTP 200
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // HTTP 404
-        }
+    @GetMapping("/upcoming")
+    @Operation(summary = "Obtener próximas 3 citas generales (Dashboard)")
+    public ResponseEntity<List<AppointmentResponseDto>> getUpcomingAppointments() {
+        return ResponseEntity.ok(appointmentService.getUpcomingAppointments());
     }
-    
-    @Operation(summary = "Listar citas por usuario", description = "Obtiene todas las citas agendadas por un ID de usuario específico.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Citas obtenidas exitosamente",
-            content = @Content(mediaType = "application/json", 
-            schema = @Schema(implementation = AppointmentWithDetailsDTO.class))),
-        @ApiResponse(responseCode = "204", description = "No hay citas para este usuario")
-    })
+
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<AppointmentWithDetailsDTO>> getAppointmentsByUser(@PathVariable Long userId) {
-        List<AppointmentWithDetailsDTO> appointments = appointmentService.getAppointmentsByUser(userId);
-        if (appointments.isEmpty()) {
-            return ResponseEntity.noContent().build(); // HTTP 204
-        }
-        return ResponseEntity.ok(appointments); // HTTP 200
+    @Operation(summary = "Obtener historial de citas por usuario")
+    public ResponseEntity<List<AppointmentResponseDto>> getAppointmentsByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(appointmentService.getAppointmentsByUser(userId));
+    }
+
+    @GetMapping("/user/{userId}/upcoming")
+    @Operation(summary = "Obtener próximas 3 citas de un usuario específico")
+    public ResponseEntity<List<AppointmentResponseDto>> getUpcomingAppointmentsByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(appointmentService.getUpcomingAppointmentsByUser(userId));
+    }
+
+    @GetMapping("/doctor/{doctorId}")
+    @Operation(summary = "Obtener citas asignadas a un doctor")
+    public ResponseEntity<List<AppointmentResponseDto>> getAppointmentsByDoctor(@PathVariable Long doctorId) {
+        return ResponseEntity.ok(appointmentService.getAppointmentsByDoctor(doctorId));
+    }
+
+    @GetMapping("/doctor/{doctorId}/date")
+    @Operation(summary = "Obtener citas por doctor y fecha específica")
+    public ResponseEntity<List<AppointmentResponseDto>> getAppointmentsByDoctorAndDate(
+            @PathVariable Long doctorId,
+            @RequestParam("date") String date) { 
+        return ResponseEntity.ok(appointmentService.getAppointmentsByDoctorAndDate(doctorId, date));
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener detalle de una cita por ID")
+    public ResponseEntity<AppointmentResponseDto> getAppointmentById(@PathVariable Long id) {
+        return ResponseEntity.ok(appointmentService.getAppointmentById(id));
+    }
+
+    @PostMapping
+    @Operation(summary = "Agendar una nueva cita")
+    public ResponseEntity<Long> createAppointment(@Valid @RequestBody AppointmentRequestDto request) {
+        Long id = appointmentService.createAppointment(request);
+        return new ResponseEntity<>(id, HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Cancelar/Eliminar una cita")
+    public ResponseEntity<Void> deleteAppointment(@PathVariable Long id) {
+        appointmentService.deleteAppointment(id);
+        return ResponseEntity.noContent().build();
     }
     
-    @Operation(summary = "Próximas citas", description = "Obtiene las próximas 3 citas pendientes para un usuario, ordenadas por fecha.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Citas próximas obtenidas exitosamente",
-            content = @Content(mediaType = "application/json", 
-            schema = @Schema(implementation = AppointmentWithDetailsDTO.class))),
-        @ApiResponse(responseCode = "204", description = "No hay citas próximas para este usuario")
-    })
-    @GetMapping("/user/{userId}/upcoming")
-    public ResponseEntity<List<AppointmentWithDetailsDTO>> getUpcomingAppointmentsByUser(@PathVariable Long userId) {
-        List<AppointmentWithDetailsDTO> appointments = appointmentService.getUpcomingAppointmentsByUser(userId);
-        if (appointments.isEmpty()) {
-            return ResponseEntity.noContent().build(); // HTTP 204
-        }
-        return ResponseEntity.ok(appointments); // HTTP 200
-    }
-
-    @Operation(summary = "Actualizar cita", description = "Actualiza los detalles de una cita existente (requiere el objeto completo de Appointment).")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Cita actualizada exitosamente",
-            content = @Content(mediaType = "application/json", 
-            schema = @Schema(implementation = Appointment.class))),
-        @ApiResponse(responseCode = "404", description = "Cita no encontrada"),
-        @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos")
-    })
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateAppointment(
-            @PathVariable Long id,
-            @RequestBody @Valid Appointment appointment) {
-        try {
-            appointment.setId(id); 
-            Appointment updatedAppointment = appointmentService.createAppointment(appointment);
-            return ResponseEntity.ok(updatedAppointment); // HTTP 200
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage()); 
-        }
-    }
-
-    @Operation(summary = "Eliminar cita", description = "Cancela y elimina una cita del sistema por su ID.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Cita eliminada exitosamente"),
-        @ApiResponse(responseCode = "404", description = "Cita no encontrada")
-    })
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteAppointment(@PathVariable Long id) {
-        try {
-            appointmentService.deleteAppointmentById(id);
-            return ResponseEntity.noContent().build(); // HTTP 204
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // HTTP 404
-        }
+    @GetMapping("/count")
+    @Operation(summary = "Total de citas registradas (para seeds/stats)")
+    public ResponseEntity<Long> countAppointments() {
+        return ResponseEntity.ok(appointmentService.count());
     }
 }

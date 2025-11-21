@@ -19,7 +19,7 @@ public class CargarDatos {
 
                 petsRepository.save(new Pets(
                     null, 
-                    1L, 
+                    6L, 
                     "Firulais", 
                     "Perro", 
                     LocalDate.of(2020, 5, 20), 
@@ -31,7 +31,7 @@ public class CargarDatos {
 
                 petsRepository.save(new Pets(
                     null, 
-                    2L, 
+                    7L, 
                     "Mishi", 
                     "Gato", 
                     LocalDate.of(2021, 8, 10), 

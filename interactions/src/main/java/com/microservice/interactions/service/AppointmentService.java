@@ -1,103 +1,108 @@
 package com.microservice.interactions.service;
 
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.microservice.interactions.dto.AppointmentWithDetailsDTO;
+import com.microservice.interactions.dto.AppointmentRequestDto;
+import com.microservice.interactions.dto.AppointmentResponseDto;
 import com.microservice.interactions.model.Appointment;
 import com.microservice.interactions.repository.AppointmentRepository;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
 @Service
 @Transactional
+@SuppressWarnings("null")
 public class AppointmentService {
 
-    private final AppointmentRepository appointmentRepository;
-    
-    // Asunción: Los servicios de otros microservicios se inyectarían aquí para obtener nombres y detalles (PetService, DoctorService)
+    @Autowired
+    private AppointmentRepository appointmentRepository;
 
-    public AppointmentService(AppointmentRepository appointmentRepository) {
-        this.appointmentRepository = appointmentRepository;
+    // Formateadores
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+
+    private AppointmentResponseDto mapToDto(Appointment entity) {
+        return AppointmentResponseDto.builder()
+                .id(entity.getId())
+                .userId(entity.getUserId())
+                .petId(entity.getPetId())
+                .doctorId(entity.getDoctorId())
+                .date(entity.getDate().toString())
+                .time(entity.getTime().toString())
+                .notes(entity.getNotes())
+                .build();
     }
 
-    /**
-     * Convierte una entidad Appointment a su DTO con detalles.
-     * En un entorno real de microservicios, esta función llamaría a otros servicios
-     * (e.g., PetService, DoctorService) para obtener los nombres reales.
-     */
-    private AppointmentWithDetailsDTO convertToDtoWithDetails(Appointment appointment) {
-        // SIMULACIÓN: Estos valores vendrían de llamadas HTTP a otros microservicios
-        // o de cachés locales.
-        String petName = "Mascota " + appointment.getPetId();
-        String doctorName = "Dr. " + appointment.getDoctorId();
-        String doctorSpecialty = "Especialidad Mock";
+    public List<AppointmentResponseDto> getAllAppointments() {
+        return appointmentRepository.findAllByOrderByDateDescTimeDesc().stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
+    public List<AppointmentResponseDto> getUpcomingAppointments() {
+        return appointmentRepository.findByDateGreaterThanEqualOrderByDateAscTimeAsc(
+                LocalDate.now(), PageRequest.of(0, 3)
+        ).stream().map(this::mapToDto).toList();
+    }
+
+    public List<AppointmentResponseDto> getAppointmentsByUser(Long userId) {
+        return appointmentRepository.findByUserIdOrderByDateDescTimeDesc(userId).stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
+    public List<AppointmentResponseDto> getUpcomingAppointmentsByUser(Long userId) {
+        return appointmentRepository.findByUserIdAndDateGreaterThanEqualOrderByDateAscTimeAsc(
+                userId, LocalDate.now(), PageRequest.of(0, 3)
+        ).stream().map(this::mapToDto).toList();
+    }
+
+    public List<AppointmentResponseDto> getAppointmentsByDoctorAndDate(Long doctorId, String dateStr) {
+        LocalDate date = LocalDate.parse(dateStr, DATE_FORMATTER);
+        return appointmentRepository.findByDoctorIdAndDate(doctorId, date).stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
+    public List<AppointmentResponseDto> getAppointmentsByDoctor(Long doctorId) {
+        return appointmentRepository.findByDoctorIdOrderByDateAscTimeAsc(doctorId).stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
+    public AppointmentResponseDto getAppointmentById(Long id) {
+        return appointmentRepository.findById(id)
+                .map(this::mapToDto)
+                .orElseThrow(() -> new RuntimeException("Cita no encontrada con ID: " + id));
+    }
+
+    public Long createAppointment(AppointmentRequestDto dto) {
+        Appointment appointment = Appointment.builder()
+                .userId(dto.getUserId())
+                .petId(dto.getPetId())
+                .doctorId(dto.getDoctorId())
+                .date(LocalDate.parse(dto.getDate(), DATE_FORMATTER))
+                .time(LocalTime.parse(dto.getTime(), TIME_FORMATTER))
+                .notes(dto.getNotes())
+                .build();
         
-        return new AppointmentWithDetailsDTO(
-            appointment.getId(),
-            appointment.getUserId(),
-            appointment.getPetId(),
-            appointment.getDoctorId(),
-            appointment.getDate(),
-            appointment.getTime(),
-            appointment.getNotes(),
-            petName,
-            doctorName,
-            doctorSpecialty
-        );
-    }
-    
-    // --- MÉTODOS CRUD SIMILARES A TU REPOSITORY ---
-
-    /**
-     * Obtiene la lista completa de citas de un usuario.
-     */
-    public List<AppointmentWithDetailsDTO> getAppointmentsByUser(Long userId) {
-        return appointmentRepository.findByUserIdOrderByDateAscTimeAsc(userId)
-                .stream()
-                .map(this::convertToDtoWithDetails)
-                .collect(Collectors.toList());
+        return appointmentRepository.save(appointment).getId();
     }
 
-    /**
-     * Obtiene las próximas 3 citas de un usuario.
-     */
-    public List<AppointmentWithDetailsDTO> getUpcomingAppointmentsByUser(Long userId) {
-        return appointmentRepository.findUpcomingAppointmentsByUser(userId, LocalDate.now())
-                .stream()
-                .map(this::convertToDtoWithDetails)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Obtiene el detalle de una cita por ID.
-     */
-    public AppointmentWithDetailsDTO getAppointmentDetail(Long appointmentId) {
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Cita no encontrada en la base de datos"));
-        
-        return convertToDtoWithDetails(appointment);
-    }
-
-    /**
-     * Crea una nueva cita.
-     */
-    public Appointment createAppointment(Appointment newAppointment) {
-        // Aquí iría la lógica de validación de disponibilidad de doctor/hora
-        return appointmentRepository.save(newAppointment);
-    }
-
-    /**
-     * Elimina una cita por ID.
-     */
-    public void deleteAppointmentById(Long appointmentId) {
-        // Se recomienda verificar si existe antes de borrar, aunque deleteById ya lo gestiona.
-        if (!appointmentRepository.existsById(appointmentId)) {
-             throw new RuntimeException("Cita no encontrada para borrar");
+    public void deleteAppointment(Long id) {
+        if (!appointmentRepository.existsById(id)) {
+            throw new RuntimeException("No se puede eliminar: Cita no encontrada");
         }
-        appointmentRepository.deleteById(appointmentId);
+        appointmentRepository.deleteById(id);
+    }
+    
+    public long count() {
+        return appointmentRepository.count();
     }
 }
