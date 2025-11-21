@@ -30,6 +30,16 @@
       "projectName": "pet",
       "args": "",
       "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-InteractionsApplication<interactions>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.microservice.interactions.InteractionsApplication",
+      "projectName": "interactions",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
     }
   ]
 }
