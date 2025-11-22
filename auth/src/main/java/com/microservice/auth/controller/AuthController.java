@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.microservice.auth.dto.LoginRequest;
+import com.microservice.auth.dto.UpdateImageRequest;
+import com.microservice.auth.dto.UpdateProfileRequest;
 import com.microservice.auth.dto.UpdateRoleRequest;
 import com.microservice.auth.dto.UserDetailDto;
 import com.microservice.auth.dto.UserListDto;
@@ -178,6 +180,32 @@ public class AuthController {
             
             User registered = service.register(doctorUser);
             return ResponseEntity.status(HttpStatus.CREATED).body(registered);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/user/{id}/profile")
+    public ResponseEntity<?> updateUserProfile(
+    @PathVariable Long id,
+    @RequestBody UpdateProfileRequest request
+    ) {
+        try {
+        User updated = service.updateUserProfile(id, request.getName(), request.getPhone());
+        return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+}
+
+    @PutMapping("/user/{id}/image")
+    public ResponseEntity<?> updateProfileImage(
+        @PathVariable Long id,
+        @RequestBody UpdateImageRequest request
+    ) {
+        try {
+            User updated = service.updateProfileImage(id, request.getImagePath());
+            return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

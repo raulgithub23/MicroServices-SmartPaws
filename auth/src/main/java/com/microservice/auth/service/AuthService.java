@@ -116,4 +116,28 @@ public class AuthService {
         }
         userRepository.deleteById(userId);
     }
+    
+    public User updateUserProfile(Long userId, String name, String phone) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        user.setName(name);
+        user.setPhone(phone);
+        
+        User updated = userRepository.save(user);
+        updated.setPassword(null);
+        return updated;
+    }
+
+    public User updateProfileImage(Long userId, String imagePath) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        user.setProfileImagePath(imagePath);
+        
+        User updated = userRepository.save(user);
+        updated.setPassword(null);
+        return updated;
+    }
+
 }
