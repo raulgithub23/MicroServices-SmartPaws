@@ -22,9 +22,10 @@ public class DoctorInitData {
         return args -> {
             if (doctorRepository.count() == 0) {
 
+                // Dr. Carlos Méndez - Medicina General
                 CreateDoctorRequest doctor1 = new CreateDoctorRequest(
                     "Dr. Carlos Méndez",
-                    "Medicina General",
+                    "Veterinario General", 
                     "carlos.mendez@smartpaws.cl",
                     "+56912345678",
                     Arrays.asList(
@@ -35,9 +36,10 @@ public class DoctorInitData {
                     )
                 );
 
+                // Dra. María González - Cirugía Veterinaria
                 CreateDoctorRequest doctor2 = new CreateDoctorRequest(
                     "Dra. María González",
-                    "Cirugía",
+                    "Cirugía Veterinaria", 
                     "maria.gonzalez@smartpaws.cl",
                     "+56987654321",
                     Arrays.asList(
@@ -47,9 +49,10 @@ public class DoctorInitData {
                     )
                 );
 
+                // Dr. Jorge Silva - Animales Exóticos
                 CreateDoctorRequest doctor3 = new CreateDoctorRequest(
                     "Dr. Jorge Silva",
-                    "Dermatología",
+                    "Animales Exóticos", 
                     "jorge.silva@smartpaws.cl",
                     "+56911223344",
                     Arrays.asList(
@@ -59,9 +62,37 @@ public class DoctorInitData {
                     )
                 );
 
+                // **Dra. Ana Rojas - Dermatología Veterinaria (AGREGADO)**
+                CreateDoctorRequest doctor4 = new CreateDoctorRequest(
+                    "Dra. Ana Rojas",
+                    "Dermatología Veterinaria",
+                    "ana.rojas@smartpaws.cl",
+                    "+56922334455",
+                    Arrays.asList(
+                        new ScheduleDto(null, "Martes", "15:00", "19:00"),
+                        new ScheduleDto(null, "Jueves", "15:00", "19:00"),
+                        new ScheduleDto(null, "Sábado", "13:00", "16:00")
+                    )
+                );
+
+                // **Dr. Luis Pérez - Odontología Veterinaria (AGREGADO)**
+                CreateDoctorRequest doctor5 = new CreateDoctorRequest(
+                    "Dr. Luis Pérez",
+                    "Odontología Veterinaria",
+                    "luis.perez@smartpaws.cl",
+                    "+56933445566",
+                    Arrays.asList(
+                        new ScheduleDto(null, "Lunes", "10:00", "12:00"),
+                        new ScheduleDto(null, "Miércoles", "10:00", "12:00"),
+                        new ScheduleDto(null, "Viernes", "10:00", "12:00")
+                    )
+                );
+
                 doctorService.createDoctor(doctor1);
                 doctorService.createDoctor(doctor2);
                 doctorService.createDoctor(doctor3);
+                doctorService.createDoctor(doctor4); // Nuevo porque estaba dando error
+                doctorService.createDoctor(doctor5); // Y esta tambien
 
                 System.out.println("Doctores de prueba creados exitosamente");
             }

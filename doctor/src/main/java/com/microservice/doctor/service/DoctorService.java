@@ -84,21 +84,23 @@ public class DoctorService {
         DoctorModel doctor = doctorRepository.findById(doctorId)
             .orElseThrow(() -> new RuntimeException("Doctor no encontrado"));
 
-        scheduleRepository.deleteByDoctorId(doctorId);
 
-        List<DoctorSchedule> newSchedules = scheduleDtos.stream()
-            .map(dto -> {
-                DoctorSchedule schedule = new DoctorSchedule(
-                    dto.getDayOfWeek(),
-                    dto.getStartTime(),
-                    dto.getEndTime()
-                );
-                schedule.setDoctor(doctor);
-                return schedule;
-            })
-            .collect(Collectors.toList());
-
-        doctor.setSchedules(newSchedules);
+        doctor.getSchedules().clear(); 
+        if (scheduleDtos != null && !scheduleDtos.isEmpty()) {
+            List<DoctorSchedule> newSchedules = scheduleDtos.stream()
+                .map(dto -> {
+                    DoctorSchedule schedule = new DoctorSchedule(
+                        dto.getDayOfWeek(),
+                        dto.getStartTime(),
+                        dto.getEndTime()
+                    );
+                    schedule.setDoctor(doctor);
+                    return schedule;
+                })
+                .collect(Collectors.toList());
+                
+            doctor.getSchedules().addAll(newSchedules); 
+        }
         DoctorModel updated = doctorRepository.save(doctor);
         
         return convertToDto(updated);
