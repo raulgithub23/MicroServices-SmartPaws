@@ -66,7 +66,16 @@ public class AppointmentInitData {
                         .notes("Caída excesiva de pelo.")
                         .build();
 
-                appointmentRepository.saveAll(Arrays.asList(app1, app2, app3, app4, app5));
+                Appointment app6 = Appointment.builder()
+                        .userId(6L)
+                        .petId(1L) // Firulais
+                        .doctorId(5L)
+                        .date(LocalDate.of(2025, 11, 10))
+                        .time(LocalTime.of(16, 0))
+                        .notes("Revisión Por molestia en el Pie.")
+                        .build();
+
+                appointmentRepository.saveAll(Arrays.asList(app1, app2, app3, app4, app5, app6));
 
                 System.out.println("Datos de Citas cargados correctamente.");
             }
