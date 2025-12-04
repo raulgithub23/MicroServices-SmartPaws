@@ -4,6 +4,8 @@ import com.microservice.doctor.dto.CreateDoctorRequest;
 import com.microservice.doctor.dto.DoctorDto;
 import com.microservice.doctor.dto.UpdateSchedulesRequest;
 import com.microservice.doctor.service.DoctorService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,12 +15,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/doctors")
+@Tag(name = "Doctors", description = "API para gestión de doctores veterinarios")
 public class DoctorController {
 
     @Autowired
     private DoctorService doctorService;
 
     @GetMapping
+    @Operation(summary = "Obtener todos los doctores")
     public ResponseEntity<List<DoctorDto>> getAllDoctors() {
         try {
             List<DoctorDto> doctors = doctorService.getAllDoctors();
@@ -29,6 +33,7 @@ public class DoctorController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Obtener doctor por ID")
     public ResponseEntity<DoctorDto> getDoctorById(@PathVariable Long id) {
         try {
             DoctorDto doctor = doctorService.getDoctorById(id);
@@ -39,6 +44,7 @@ public class DoctorController {
     }
 
     @GetMapping("/by-email")
+    @Operation(summary = "Obtener doctor por email")
     public ResponseEntity<DoctorDto> getDoctorByEmail(@RequestParam String email) {
         try {
             DoctorDto doctor = doctorService.getDoctorByEmail(email);
@@ -49,6 +55,7 @@ public class DoctorController {
     }
 
     @PostMapping
+    @Operation(summary = "Crear un nuevo doctor")
     public ResponseEntity<?> createDoctor(@RequestBody CreateDoctorRequest request) {
         try {
             DoctorDto created = doctorService.createDoctor(request);
@@ -59,6 +66,7 @@ public class DoctorController {
     }
 
     @PutMapping("/{id}/schedules")
+    @Operation(summary = "Actualizar horarios de un doctor")
     public ResponseEntity<?> updateSchedules(
         @PathVariable Long id,
         @RequestBody UpdateSchedulesRequest request
@@ -72,6 +80,7 @@ public class DoctorController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar un doctor")
     public ResponseEntity<?> deleteDoctor(@PathVariable Long id) {
         try {
             doctorService.deleteDoctor(id);
@@ -82,6 +91,7 @@ public class DoctorController {
     }
 
     @GetMapping("/count")
+    @Operation(summary = "Contar total de doctores registrados")
     public ResponseEntity<Long> countDoctors() {
         return ResponseEntity.ok(doctorService.countDoctors());
     }

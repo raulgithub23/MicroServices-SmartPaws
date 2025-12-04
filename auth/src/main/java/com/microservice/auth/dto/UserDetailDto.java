@@ -1,11 +1,26 @@
 package com.microservice.auth.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Información detallada de un usuario")
 public class UserDetailDto {
+    
+    @Schema(description = "ID único del usuario", example = "55")
     private Long id;
+    
+    @Schema(description = "Rol del usuario", example = "USER")
     private String rol;
+    
+    @Schema(description = "Nombre completo", example = "Juan Pérez")
     private String name;
+    
+    @Schema(description = "Email de contacto", example = "juan.perez@email.com")
     private String email;
+    
+    @Schema(description = "Teléfono de contacto", example = "+56912345678")
     private String phone;
+    
+    @Schema(description = "Ruta de la imagen de perfil", example = "/images/profile/user55.jpg")
     private String profileImagePath;
 
     public UserDetailDto() {}

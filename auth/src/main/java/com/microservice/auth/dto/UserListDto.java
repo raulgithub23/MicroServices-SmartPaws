@@ -1,8 +1,17 @@
 package com.microservice.auth.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Información resumida de un usuario para listados")
 public class UserListDto {
+    
+    @Schema(description = "ID único del usuario", example = "10")
     private Long id;
+    
+    @Schema(description = "Nombre completo", example = "María García")
     private String name;
+    
+    @Schema(description = "Rol del usuario", example = "DOCTOR")
     private String rol;
 
     public UserListDto() {}
@@ -13,7 +22,6 @@ public class UserListDto {
         this.rol = rol;
     }
 
-    // Getters y Setters
     public Long getId() {
         return id;
     }
