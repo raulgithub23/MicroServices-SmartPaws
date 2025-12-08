@@ -1,24 +1,11 @@
 package com.microservice.auth.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
+@Data
 @Schema(description = "Request para actualizar el rol de un usuario")
 public class UpdateRoleRequest {
-    
-    @Schema(description = "Nuevo rol del usuario", example = "ADMIN", allowableValues = {"USER", "ADMIN", "DOCTOR"}, requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Nuevo rol del usuario", example = "ADMIN", allowableValues = {"USER", "ADMIN", "DOCTOR"})
     private String rol;
-
-    public UpdateRoleRequest() {}
-
-    public UpdateRoleRequest(String rol) {
-        this.rol = rol;
-    }
-
-    public String getRol() {
-        return rol;
-    }
-
-    public void setRol(String rol) {
-        this.rol = rol;
-    }
 }

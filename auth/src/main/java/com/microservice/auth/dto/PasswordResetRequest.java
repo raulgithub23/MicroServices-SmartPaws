@@ -4,11 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@Schema(description = "Credenciales para iniciar sesión")
-public class LoginRequest {
+@Schema(description = "Request para solicitar recuperación de contraseña")
+public class PasswordResetRequest {
     @Schema(description = "Email del usuario", example = "usuario@smartpaws.cl")
     private String email;
-
-    @Schema(description = "Contraseña del usuario", example = "password123")
-    private String password;
 }

@@ -4,11 +4,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@Schema(description = "Credenciales para iniciar sesión")
-public class LoginRequest {
+@Schema(description = "Datos para restablecer contraseña usando email")
+public class ResetPasswordByEmailDto {
     @Schema(description = "Email del usuario", example = "usuario@smartpaws.cl")
     private String email;
-
-    @Schema(description = "Contraseña del usuario", example = "password123")
-    private String password;
+    
+    @Schema(description = "Nueva contraseña")
+    private String newPassword;
 }

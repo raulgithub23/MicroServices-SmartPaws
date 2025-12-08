@@ -18,14 +18,14 @@ public class DoctorInitData {
     private DoctorService doctorService;
 
     @Bean
-    public CommandLineRunner initDoctors(DoctorRepository doctorRepository) {
+    public CommandLineRunner initDoctorDatabase(DoctorRepository doctorRepository) {
         return args -> {
             if (doctorRepository.count() == 0) {
+                System.out.println("Creando doctores de prueba...");
 
-                // Dr. Carlos Méndez - Medicina General
                 CreateDoctorRequest doctor1 = new CreateDoctorRequest(
                     "Dr. Carlos Méndez",
-                    "Veterinario General", 
+                    "Veterinario General",
                     "carlos.mendez@smartpaws.cl",
                     "+56912345678",
                     Arrays.asList(
@@ -36,10 +36,9 @@ public class DoctorInitData {
                     )
                 );
 
-                // Dra. María González - Cirugía Veterinaria
                 CreateDoctorRequest doctor2 = new CreateDoctorRequest(
                     "Dra. María González",
-                    "Cirugía Veterinaria", 
+                    "Cirugía Veterinaria",
                     "maria.gonzalez@smartpaws.cl",
                     "+56987654321",
                     Arrays.asList(
@@ -49,10 +48,9 @@ public class DoctorInitData {
                     )
                 );
 
-                // Dr. Jorge Silva - Animales Exóticos
                 CreateDoctorRequest doctor3 = new CreateDoctorRequest(
                     "Dr. Jorge Silva",
-                    "Animales Exóticos", 
+                    "Animales Exóticos",
                     "jorge.silva@smartpaws.cl",
                     "+56911223344",
                     Arrays.asList(
@@ -62,7 +60,6 @@ public class DoctorInitData {
                     )
                 );
 
-                // **Dra. Ana Rojas - Dermatología Veterinaria (AGREGADO)**
                 CreateDoctorRequest doctor4 = new CreateDoctorRequest(
                     "Dra. Ana Rojas",
                     "Dermatología Veterinaria",
@@ -75,7 +72,6 @@ public class DoctorInitData {
                     )
                 );
 
-                // **Dr. Luis Pérez - Odontología Veterinaria (AGREGADO)**
                 CreateDoctorRequest doctor5 = new CreateDoctorRequest(
                     "Dr. Luis Pérez",
                     "Odontología Veterinaria",
@@ -91,10 +87,11 @@ public class DoctorInitData {
                 doctorService.createDoctor(doctor1);
                 doctorService.createDoctor(doctor2);
                 doctorService.createDoctor(doctor3);
-                doctorService.createDoctor(doctor4); // Nuevo porque estaba dando error
-                doctorService.createDoctor(doctor5); // Y esta tambien
+                doctorService.createDoctor(doctor4);
+                doctorService.createDoctor(doctor5);
 
                 System.out.println("Doctores de prueba creados exitosamente");
+                System.out.println("Total de doctores: " + doctorRepository.count());
             }
         };
     }

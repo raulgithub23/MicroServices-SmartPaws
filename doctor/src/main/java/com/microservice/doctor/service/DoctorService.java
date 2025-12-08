@@ -6,7 +6,6 @@ import com.microservice.doctor.dto.ScheduleDto;
 import com.microservice.doctor.model.DoctorModel;
 import com.microservice.doctor.model.DoctorSchedule;
 import com.microservice.doctor.repository.DoctorRepository;
-import com.microservice.doctor.repository.DoctorScheduleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +18,6 @@ public class DoctorService {
 
     @Autowired
     private DoctorRepository doctorRepository;
-
-    @Autowired
-    private DoctorScheduleRepository scheduleRepository;
 
     @Transactional(readOnly = true)
     public List<DoctorDto> getAllDoctors() {
@@ -84,8 +80,8 @@ public class DoctorService {
         DoctorModel doctor = doctorRepository.findById(doctorId)
             .orElseThrow(() -> new RuntimeException("Doctor no encontrado"));
 
-
         doctor.getSchedules().clear(); 
+        
         if (scheduleDtos != null && !scheduleDtos.isEmpty()) {
             List<DoctorSchedule> newSchedules = scheduleDtos.stream()
                 .map(dto -> {
@@ -101,8 +97,8 @@ public class DoctorService {
                 
             doctor.getSchedules().addAll(newSchedules); 
         }
-        DoctorModel updated = doctorRepository.save(doctor);
         
+        DoctorModel updated = doctorRepository.save(doctor);
         return convertToDto(updated);
     }
 

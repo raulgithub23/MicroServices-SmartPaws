@@ -28,14 +28,23 @@ import com.microservice.auth.dto.LoginRequest;
 import com.microservice.auth.dto.UpdateRoleRequest;
 import com.microservice.auth.dto.UserDetailDto;
 import com.microservice.auth.dto.UserListDto;
+import com.microservice.auth.model.Role;
 import com.microservice.auth.model.User;
+import com.microservice.auth.repository.RoleRepository;
 import com.microservice.auth.service.AuthService;
+import com.microservice.auth.service.ImageService;
 
 @WebMvcTest(AuthController.class)
 public class AuthControllerTest {
 
     @MockBean
     private AuthService authService;
+
+    @MockBean
+    private ImageService imageService;
+
+    @MockBean
+    private RoleRepository roleRepository;
 
     @Autowired
     private MockMvc mockMvc;
@@ -44,6 +53,8 @@ public class AuthControllerTest {
     private ObjectMapper objectMapper;
 
     private User userTest;
+    private Role userRole;
+    private Role doctorRole;
     private LoginRequest loginRequest;
     private UpdateRoleRequest updateRoleRequest;
     private List<UserListDto> userListDto;
@@ -51,14 +62,16 @@ public class AuthControllerTest {
 
     @BeforeEach
     void setUp() {
+        userRole = new Role("USER", "Usuario estándar");
+        doctorRole = new Role("DOCTOR", "Doctor veterinario");
+
         userTest = new User();
         userTest.setId(1L);
         userTest.setName("Juan Pérez");
         userTest.setEmail("juan@test.com");
-        userTest.setPassword(null); // Password is nulled after operations
+        userTest.setPassword(null);
         userTest.setPhone("123456789");
-        userTest.setRol("USER");
-        userTest.setProfileImagePath("/images/juan.jpg");
+        userTest.addRole(userRole);
 
         loginRequest = new LoginRequest();
         loginRequest.setEmail("juan@test.com");
@@ -70,11 +83,10 @@ public class AuthControllerTest {
         userListDto = Arrays.asList(new UserListDto(1L, "Juan Pérez", "USER"));
 
         userDetailDtoList = Arrays.asList(
-            new UserDetailDto(1L, "USER", "Juan Pérez", "juan@test.com", "123456789", "/images/juan.jpg")
+            new UserDetailDto(1L, "USER", "Juan Pérez", "juan@test.com", "123456789", null)
         );
     }
 
-    // POST - /auth/register
     @Test
     void testRegister_JsonAndCreated() throws Exception {
         User newUser = new User();
@@ -106,7 +118,6 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    // POST - /auth/login
     @Test
     void testLogin_JsonAndOK() throws Exception {
         when(authService.login("juan@test.com", "password123")).thenReturn(userTest);
@@ -133,7 +144,6 @@ public class AuthControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    // GET - /auth/user/{id}
     @Test
     void testGetUserById_JsonAndOK() throws Exception {
         when(authService.getUserById(1L)).thenReturn(userTest);
@@ -153,7 +163,6 @@ public class AuthControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // GET - /auth/users?rol=ADMIN
     @Test
     void testGetAllUsers_JsonAndOK() throws Exception {
         when(authService.getAllUsers()).thenReturn(userListDto);
@@ -172,7 +181,6 @@ public class AuthControllerTest {
                 .andExpect(status().isForbidden());
     }
 
-    // GET - /auth/users/detailed?adminRol=ADMIN
     @Test
     void testGetAllUsersDetailed_JsonAndOK() throws Exception {
         when(authService.getAllUsersDetailed()).thenReturn(userDetailDtoList);
@@ -190,7 +198,6 @@ public class AuthControllerTest {
                 .andExpect(status().isForbidden());
     }
 
-    // GET - /auth/users/search?query=juan&adminRol=ADMIN
     @Test
     void testSearchUsers_JsonAndOK() throws Exception {
         when(authService.searchUsers("juan")).thenReturn(userDetailDtoList);
@@ -210,7 +217,6 @@ public class AuthControllerTest {
                 .andExpect(status().isForbidden());
     }
 
-    // GET - /auth/users/by-role?role=USER&adminRol=ADMIN
     @Test
     void testGetUsersByRole_JsonAndOK() throws Exception {
         when(authService.getUsersByRole("USER")).thenReturn(userDetailDtoList);
@@ -230,7 +236,6 @@ public class AuthControllerTest {
                 .andExpect(status().isForbidden());
     }
 
-    // PUT - /auth/user/{id}/role?adminRol=ADMIN
     @Test
     void testUpdateUserRole_JsonAndOK() throws Exception {
         when(authService.updateUserRole(eq(1L), eq("ADMIN"))).thenReturn(userTest);
@@ -252,7 +257,6 @@ public class AuthControllerTest {
                 .andExpect(status().isForbidden());
     }
 
-    // DELETE - /auth/user/{id}?adminRol=ADMIN
     @Test
     void testDeleteUser_OK() throws Exception {
         doNothing().when(authService).deleteUser(1L);
@@ -279,22 +283,21 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    // POST - /auth/doctor/create?adminRol=ADMIN
     @Test
     void testCreateDoctor_JsonAndCreated() throws Exception {
         User doctorUser = new User();
         doctorUser.setEmail("doctor@test.com");
         doctorUser.setName("Dr. Carlos");
-        doctorUser.setRol("DOCTOR");
+        doctorUser.addRole(doctorRole);
 
+        when(roleRepository.findByName("DOCTOR")).thenReturn(java.util.Optional.of(doctorRole));
         when(authService.register(any(User.class))).thenReturn(doctorUser);
 
         mockMvc.perform(post("/auth/doctor/create")
                 .param("adminRol", "ADMIN")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(doctorUser)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.rol").value("DOCTOR"));
+                .andExpect(status().isCreated());
     }
 
     @Test

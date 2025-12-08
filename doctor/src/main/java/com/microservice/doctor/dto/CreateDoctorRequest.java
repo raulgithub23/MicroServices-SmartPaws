@@ -13,18 +13,18 @@ import java.util.List;
 @Schema(description = "Datos requeridos para crear un nuevo doctor")
 public class CreateDoctorRequest {
     
-    @Schema(description = "Nombre completo del doctor", example = "Dra. María González", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Nombre completo del doctor", example = "Dra. María González")
     private String name;
     
-    @Schema(description = "Especialidad médica", example = "Cirugía Veterinaria", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Especialidad médica", example = "Cirugía Veterinaria")
     private String specialty;
     
-    @Schema(description = "Email de contacto", example = "maria.gonzalez@smartpaws.cl", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Email de contacto", example = "maria.gonzalez@smartpaws.cl")
     private String email;
     
-    @Schema(description = "Teléfono de contacto", example = "+56987654321", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Teléfono de contacto", example = "+56987654321")
     private String phone;
     
-    @Schema(description = "Lista de horarios de atención", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Lista de horarios de atención")
     private List<ScheduleDto> schedules;
 }

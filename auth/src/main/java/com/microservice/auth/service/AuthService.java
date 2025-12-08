@@ -5,8 +5,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.microservice.auth.dto.UserDetailDto;
 import com.microservice.auth.dto.UserListDto;
+import com.microservice.auth.model.Role;
 import com.microservice.auth.model.User;
+import com.microservice.auth.repository.RoleRepository;
 import com.microservice.auth.repository.UserRepository;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,12 +23,23 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     public User register(User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new RuntimeException("El email ya está en uso");
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        
+        // Asignar rol por defecto si no viene
+        if (user.getRoles().isEmpty()) {
+            Role userRole = roleRepository.findByName("USER")
+                .orElseThrow(() -> new RuntimeException("Error: Rol USER no encontrado."));
+            user.addRole(userRole);
+        }
+
         User saved = userRepository.save(user);
         saved.setPassword(null);
         return saved;
@@ -50,22 +65,23 @@ public class AuthService {
         return user;
     }
 
+    private String getFullName(User user) {
+        return user.getName();
+    }
+
     public List<UserListDto> getAllUsers() {
         return userRepository.findAll().stream()
-            .map(user -> new UserListDto(user.getId(), user.getName(), user.getRol()))
+            .map(user -> {
+                String roleName = user.getRoles().isEmpty() ? "USER" : 
+                    user.getRoles().iterator().next().getName();
+                return new UserListDto(user.getId(), user.getName(), roleName);
+            })
             .collect(Collectors.toList());
     }
 
     public List<UserDetailDto> getAllUsersDetailed() {
         return userRepository.findAll().stream()
-            .map(user -> new UserDetailDto(
-                user.getId(),
-                user.getRol(),
-                user.getName(),
-                user.getEmail(),
-                user.getPhone(),
-                user.getProfileImagePath()
-            ))
+            .map(this::mapUserToDetailDto)
             .collect(Collectors.toList());
     }
 
@@ -75,36 +91,47 @@ public class AuthService {
                 user.getName().toLowerCase().contains(query.toLowerCase()) ||
                 user.getEmail().toLowerCase().contains(query.toLowerCase())
             )
-            .map(user -> new UserDetailDto(
-                user.getId(),
-                user.getRol(),
-                user.getName(),
-                user.getEmail(),
-                user.getPhone(),
-                user.getProfileImagePath()
-            ))
+            .map(this::mapUserToDetailDto)
             .collect(Collectors.toList());
     }
 
-    public List<UserDetailDto> getUsersByRole(String rol) {
+    public List<UserDetailDto> getUsersByRole(String roleName) {
         return userRepository.findAll().stream()
-            .filter(user -> user.getRol().equalsIgnoreCase(rol))
-            .map(user -> new UserDetailDto(
-                user.getId(),
-                user.getRol(),
-                user.getName(),
-                user.getEmail(),
-                user.getPhone(),
-                user.getProfileImagePath()
-            ))
+            .filter(user -> hasRole(user, roleName))
+            .map(this::mapUserToDetailDto)
             .collect(Collectors.toList());
     }
 
-    public User updateUserRole(Long userId, String newRole) {
+    private UserDetailDto mapUserToDetailDto(User user) {
+        String roleName = user.getRoles().isEmpty() ? "USER" : 
+            user.getRoles().iterator().next().getName();
+            
+        return new UserDetailDto(
+            user.getId(),
+            roleName,
+            user.getName(),
+            user.getEmail(),
+            user.getPhone(),
+            user.getProfileImagePath()
+        );
+    }
+
+    private boolean hasRole(User user, String roleName) {
+        return user.getRoles().stream()
+            .anyMatch(role -> role.getName().equals(roleName));
+    }
+
+    @Transactional
+    public User updateUserRole(Long userId, String newRoleName) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         
-        user.setRol(newRole);
+        Role newRole = roleRepository.findByName(newRoleName)
+            .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
+        
+        user.getRoles().clear();
+        user.addRole(newRole);
+        
         User updated = userRepository.save(user);
         updated.setPassword(null);
         return updated;
@@ -129,15 +156,21 @@ public class AuthService {
         return updated;
     }
 
-    public User updateProfileImage(Long userId, String imagePath) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    @Transactional
+    public void verifyEmailForReset(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("No existe un usuario con ese email"));
         
-        user.setProfileImagePath(imagePath);
-        
-        User updated = userRepository.save(user);
-        updated.setPassword(null);
-        return updated;
+        // Solo verificamos que el email existe
+        // No generamos token ni enviamos email
     }
 
+    @Transactional
+    public void resetPasswordByEmail(String email, String newPassword) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("No existe un usuario con ese email"));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }

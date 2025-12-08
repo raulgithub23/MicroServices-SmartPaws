@@ -21,7 +21,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.microservice.auth.dto.UserDetailDto;
 import com.microservice.auth.dto.UserListDto;
+import com.microservice.auth.model.Role;
 import com.microservice.auth.model.User;
+import com.microservice.auth.repository.PasswordResetTokenRepository;
+import com.microservice.auth.repository.RoleRepository;
 import com.microservice.auth.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,22 +36,35 @@ public class AuthServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private RoleRepository roleRepository;
+
+    @Mock
+    private PasswordResetTokenRepository tokenRepository;
+
+    @Mock
+    private EmailService emailService;
+
     @InjectMocks
     private AuthService authService;
 
     private User userTest;
+    private Role userRole;
+    private Role adminRole;
     private List<User> userListTest;
 
     @BeforeEach
     void setUp() {
+        userRole = new Role("USER", "Usuario estándar");
+        adminRole = new Role("ADMIN", "Administrador");
+
         userTest = new User();
         userTest.setId(1L);
         userTest.setName("Juan Pérez");
         userTest.setEmail("juan@test.com");
         userTest.setPassword("hashedPassword123");
         userTest.setPhone("123456789");
-        userTest.setRol("USER");
-        userTest.setProfileImagePath("/images/juan.jpg");
+        userTest.addRole(userRole);
 
         userListTest = Arrays.asList(userTest);
     }
@@ -192,11 +208,17 @@ public class AuthServiceTest {
     @Test
     void testUpdateUserRole_Exitoso() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(userTest));
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(roleRepository.findByName("ADMIN")).thenReturn(Optional.of(adminRole));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User savedUser = invocation.getArgument(0);
+            savedUser.getRoles().clear();
+            savedUser.addRole(adminRole);
+            return savedUser;
+        });
 
         User result = authService.updateUserRole(1L, "ADMIN");
 
-        assertThat(result.getRol()).isEqualTo("ADMIN");
+        assertThat(result.hasRole("ADMIN")).isTrue();
         assertThat(result.getPassword()).isNull();
         verify(userRepository).save(any(User.class));
     }
