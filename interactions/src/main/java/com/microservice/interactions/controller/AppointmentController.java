@@ -6,17 +6,12 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.microservice.interactions.dto.AppointmentRequestDto;
 import com.microservice.interactions.dto.AppointmentResponseDto;
+import com.microservice.interactions.dto.AppointmentWithDetailsDTO;
+import com.microservice.interactions.dto.DoctorAppointmentSummaryDTO;
 import com.microservice.interactions.service.AppointmentService;
 
 import java.util.List;
@@ -52,25 +47,44 @@ public class AppointmentController {
     public ResponseEntity<List<AppointmentResponseDto>> getUpcomingAppointmentsByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(appointmentService.getUpcomingAppointmentsByUser(userId));
     }
+    
+    @GetMapping("/user/{userId}/upcoming/details")
+    @Operation(summary = "Obtener próximas 3 citas de usuario CON NOMBRES (Mascota/Doctor)")
+    public ResponseEntity<List<AppointmentWithDetailsDTO>> getUpcomingAppointmentsByUserDetailed(@PathVariable Long userId) {
+        return ResponseEntity.ok(appointmentService.getUpcomingAppointmentsByUserDetailed(userId));
+    }
 
     @GetMapping("/doctor/{doctorId}")
-    @Operation(summary = "Obtener citas asignadas a un doctor")
+    @Operation(summary = "Obtener citas asignadas a un doctor (Lista simple)")
     public ResponseEntity<List<AppointmentResponseDto>> getAppointmentsByDoctor(@PathVariable Long doctorId) {
         return ResponseEntity.ok(appointmentService.getAppointmentsByDoctor(doctorId));
     }
 
+    @GetMapping("/doctor/{doctorId}/agenda")
+    @Operation(summary = "Obtener agenda diaria del doctor CON DETALLES (Dueño/Mascota)")
+    public ResponseEntity<List<DoctorAppointmentSummaryDTO>> getDoctorAgenda(
+            @PathVariable Long doctorId,
+            @RequestParam("date") String date) {
+        return ResponseEntity.ok(appointmentService.getAppointmentsByDoctorAndDateRich(doctorId, date));
+    }
+
     @GetMapping("/doctor/{doctorId}/date")
-    @Operation(summary = "Obtener citas por doctor y fecha específica")
-    public ResponseEntity<List<AppointmentResponseDto>> getAppointmentsByDoctorAndDate(
+    public ResponseEntity<List<AppointmentResponseDto>> getAppointmentsByDoctorAndDateSimple(
             @PathVariable Long doctorId,
             @RequestParam("date") String date) { 
         return ResponseEntity.ok(appointmentService.getAppointmentsByDoctorAndDate(doctorId, date));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener detalle de una cita por ID")
+    @Operation(summary = "Obtener detalle básico de una cita por ID")
     public ResponseEntity<AppointmentResponseDto> getAppointmentById(@PathVariable Long id) {
         return ResponseEntity.ok(appointmentService.getAppointmentById(id));
+    }
+
+    @GetMapping("/{id}/details")
+    @Operation(summary = "Obtener detalle COMPLETO de una cita (incluye nombres externos)")
+    public ResponseEntity<AppointmentWithDetailsDTO> getAppointmentDetailsById(@PathVariable Long id) {
+        return ResponseEntity.ok(appointmentService.getAppointmentDetailsById(id));
     }
 
     @PostMapping
@@ -88,7 +102,7 @@ public class AppointmentController {
     }
     
     @GetMapping("/count")
-    @Operation(summary = "Total de citas registradas (para seeds/stats)")
+    @Operation(summary = "Total de citas registradas")
     public ResponseEntity<Long> countAppointments() {
         return ResponseEntity.ok(appointmentService.count());
     }

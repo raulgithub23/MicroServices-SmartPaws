@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.microservice.interactions.model.Appointment;
 import org.springframework.data.domain.Pageable;
-
+ 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
