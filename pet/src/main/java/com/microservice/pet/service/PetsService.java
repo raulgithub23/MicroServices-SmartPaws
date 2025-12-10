@@ -1,20 +1,20 @@
 package com.microservice.pet.service;
 
-
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.microservice.pet.client.UserClient;
 import com.microservice.pet.model.Pets;
 import com.microservice.pet.repository.PetsRepository;
 
 import java.util.List;
 import java.util.Set;
-
 
 @Service
 @Transactional 
@@ -22,6 +22,9 @@ public class PetsService {
 
     @Autowired
     private PetsRepository petsRepository;
+
+    @Autowired
+    private UserClient userClient;
     
     private final Validator validator;
 
@@ -40,6 +43,7 @@ public class PetsService {
     }
 
     public List<Pets> listarMascotasPorUsuario(Long userId) {
+        validarUsuario(userId); 
         return petsRepository.findByUserId(userId);
     }
     
@@ -48,6 +52,9 @@ public class PetsService {
         if (!violations.isEmpty()) {
             throw new RuntimeException("Error de validación: " + violations.iterator().next().getMessage());
         }
+
+        validarUsuario(pet.getUserId());
+
         return petsRepository.save(pet);
     }
 
@@ -60,7 +67,6 @@ public class PetsService {
     public Pets actualizarMascota(Long id, Pets petActualizada) {
         Pets petActual = buscarMascota(id);
 
-        // Aplicar solo los cambios proporcionados
         if (petActualizada.getUserId() != null) {
             petActual.setUserId(petActualizada.getUserId());
         }
@@ -91,5 +97,15 @@ public class PetsService {
 
     public List<Pets> buscarPorNombre(String nombre) {
         return petsRepository.findByNameContainingIgnoreCase(nombre);
+    }
+
+    private void validarUsuario(Long userId) {
+        try {
+            userClient.getUserById(userId);
+        } catch (FeignException.NotFound e) {
+            throw new RuntimeException("El usuario con ID " + userId + " no existe en el sistema.");
+        } catch (FeignException e) {
+            throw new RuntimeException("Error al comunicarse con el servicio de usuarios: " + e.getMessage());
+        }
     }
 }
