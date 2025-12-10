@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 
-@FeignClient(name = "pet-service", url = "${ms.pet.url:http://localhost:8080}")
+@FeignClient(name = "pet-service", url = "${ms.pet.url}")
 public interface PetClient {
     @GetMapping("/api/pets/{id}")
     PetExternalDto getPetById(@PathVariable("id") Long id);
