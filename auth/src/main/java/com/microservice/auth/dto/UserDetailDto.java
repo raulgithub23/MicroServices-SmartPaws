@@ -25,6 +25,6 @@ public class UserDetailDto {
     @Schema(description = "Teléfono de contacto")
     private String phone;
     
-    @Schema(description = "Nombre del archivo de imagen de perfil")
-    private String profileImagePath;
+    @Schema(description = "Indicador de si tiene imagen de perfil", example = "HAS_IMAGE")
+    private String hasProfileImage; // Cambiado de profileImagePath a hasProfileImage
 }
