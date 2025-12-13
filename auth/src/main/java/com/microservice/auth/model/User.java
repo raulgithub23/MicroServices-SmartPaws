@@ -12,33 +12,26 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "auth_table") // Mantenemos el nombre de tu tabla original
+@Table(name = "auth_table")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id = 0L;
 
-    // VARIABLE ORIGINAL: name (Se respeta, nada de firstName/lastName)
     @Column(nullable = false)
     private String name;
 
-    // VARIABLE ORIGINAL: email
     @Column(nullable = false, unique = true)
     private String email;
 
-    // VARIABLE ORIGINAL: phone (Se respeta, nada de phoneNumber)
     @Column(nullable = false)
     private String phone;
 
-    // VARIABLE ORIGINAL: password
     @Column(nullable = false)
     private String password;
 
-    // VARIABLE ORIGINAL: profileImagePath
-    private String profileImagePath = "drawable://larry";
-
-    // --- INTEGRACIÓN DE NUEVAS FUNCIONALIDADES (SIN TOCAR LO DE ARRIBA) ---
+    // ELIMINADO: profileImagePath - ahora solo usamos ProfileImage BLOB
 
     @Column(nullable = false)
     private Boolean enabled = true;
@@ -46,7 +39,6 @@ public class User {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // EL ROL SEPARADO (Tal como pediste, ahora es una relación)
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_roles",
@@ -55,7 +47,7 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    // Relación con la imagen física (BLOB) si decides usarla, opcional
+    // Relación con la imagen física (BLOB)
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private ProfileImage profileImageEntity;
 
@@ -70,7 +62,6 @@ public class User {
         updatedAt = LocalDateTime.now();
     }
 
-    // Constructor compatible con tu lógica de login original
     public User(String email, String password) {
         this.email = email;
         this.password = password;

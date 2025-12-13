@@ -65,10 +65,6 @@ public class AuthService {
         return user;
     }
 
-    private String getFullName(User user) {
-        return user.getName();
-    }
-
     public List<UserListDto> getAllUsers() {
         return userRepository.findAll().stream()
             .map(user -> {
@@ -105,6 +101,9 @@ public class AuthService {
     private UserDetailDto mapUserToDetailDto(User user) {
         String roleName = user.getRoles().isEmpty() ? "USER" : 
             user.getRoles().iterator().next().getName();
+        
+        // Verificar si tiene imagen de perfil
+        String imageIndicator = user.getProfileImageEntity() != null ? "HAS_IMAGE" : null;
             
         return new UserDetailDto(
             user.getId(),
@@ -112,7 +111,7 @@ public class AuthService {
             user.getName(),
             user.getEmail(),
             user.getPhone(),
-            user.getProfileImagePath()
+            imageIndicator // Solo indicamos si tiene imagen, no la ruta
         );
     }
 
@@ -160,9 +159,6 @@ public class AuthService {
     public void verifyEmailForReset(String email) {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("No existe un usuario con ese email"));
-        
-        // Solo verificamos que el email existe
-        // No generamos token ni enviamos email
     }
 
     @Transactional
