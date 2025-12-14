@@ -31,7 +31,8 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    // ELIMINADO: profileImagePath - ahora solo usamos ProfileImage BLOB
+    // ELIMINADO: profileImagePath y profileImageEntity
+    // Ya no almacenamos nada de imágenes en el backend
 
     @Column(nullable = false)
     private Boolean enabled = true;
@@ -46,10 +47,6 @@ public class User {
         inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles = new HashSet<>();
-
-    // Relación con la imagen física (BLOB)
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private ProfileImage profileImageEntity;
 
     @PrePersist
     protected void onCreate() {

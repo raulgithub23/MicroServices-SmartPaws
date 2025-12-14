@@ -33,7 +33,6 @@ public class AuthService {
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         
-        // Asignar rol por defecto si no viene
         if (user.getRoles().isEmpty()) {
             Role userRole = roleRepository.findByName("USER")
                 .orElseThrow(() -> new RuntimeException("Error: Rol USER no encontrado."));
@@ -98,17 +97,14 @@ public class AuthService {
     private UserDetailDto mapUserToDetailDto(User user) {
         String roleName = user.getRoles().isEmpty() ? "USER" : 
             user.getRoles().iterator().next().getName();
-        
-        // Verificar si tiene imagen de perfil
-        String imageIndicator = user.getProfileImageEntity() != null ? "HAS_IMAGE" : null;
             
+        // SIMPLIFICADO: Ya no verificamos imagen, solo devolvemos datos básicos
         return new UserDetailDto(
             user.getId(),
             roleName,
             user.getName(),
             user.getEmail(),
-            user.getPhone(),
-            imageIndicator // Solo indicamos si tiene imagen, no la ruta
+            user.getPhone()
         );
     }
 

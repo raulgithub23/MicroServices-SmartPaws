@@ -1,6 +1,5 @@
 package com.microservice.auth.controller;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,18 +8,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.microservice.auth.dto.ImageUploadRequest;
 import com.microservice.auth.dto.LoginRequest;
 import com.microservice.auth.dto.UpdateProfileRequest;
 import com.microservice.auth.dto.UpdateRoleRequest;
 import com.microservice.auth.dto.UserDetailDto;
 import com.microservice.auth.dto.UserListDto;
-import com.microservice.auth.model.ProfileImage;
 import com.microservice.auth.model.Role;
 import com.microservice.auth.model.User;
 import com.microservice.auth.repository.RoleRepository;
 import com.microservice.auth.service.AuthService;
-import com.microservice.auth.service.ImageService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,13 +30,12 @@ import com.microservice.auth.dto.ResetPasswordByEmailDto;
 public class AuthController {
 
     @Autowired
-    private ImageService imageService;
-
-    @Autowired
     private AuthService service;
 
     @Autowired
     private RoleRepository roleRepository;
+
+    // ELIMINADO: ImageService - ya no se necesita
 
     @PostMapping("/register")
     @Operation(summary = "Registrar un nuevo usuario")
@@ -248,58 +243,5 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/user/{id}/upload-image")
-    @Operation(summary = "Subir imagen de perfil (Base64)")
-    public ResponseEntity<?> uploadProfileImage(
-        @PathVariable Long id,
-        @RequestBody ImageUploadRequest request
-    ) {
-        try {
-            imageService.uploadProfileImage(
-                id,
-                request.getFileName(),
-                request.getContentType(),
-                request.getImageBase64()
-            );
-            return ResponseEntity.ok()
-                .body(Map.of("success", true, "message", "Imagen de perfil actualizada exitosamente"));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest()
-                .body(Map.of("success", false, "message", e.getMessage()));
-        }
-    }
-
-    @GetMapping("/user/{id}/image")
-    @Operation(summary = "Obtener imagen de perfil")
-    public ResponseEntity<?> getProfileImage(@PathVariable Long id) {
-        try {
-            ProfileImage image = imageService.getProfileImage(id);
-            String base64Image = imageService.convertToBase64(image.getImageData());
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("fileName", image.getFileName());
-            response.put("contentType", image.getContentType());
-            response.put("fileSize", image.getFileSize());
-            response.put("imageBase64", base64Image);
-            
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("success", false, "message", e.getMessage()));
-        }
-    }
-
-    @DeleteMapping("/user/{id}/image")
-    @Operation(summary = "Eliminar imagen de perfil")
-    public ResponseEntity<?> deleteProfileImage(@PathVariable Long id) {
-        try {
-            imageService.deleteProfileImage(id);
-            return ResponseEntity.ok()
-                .body(Map.of("success", true, "message", "Imagen de perfil eliminada exitosamente"));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest()
-                .body(Map.of("success", false, "message", e.getMessage()));
-        }
-    }
+    // ELIMINADOS: Todos los endpoints de imagen (upload, get, delete)
 }
