@@ -59,7 +59,7 @@ public class AuthInitData {
                 User admin1 = new User();
                 admin1.setName("Gabriel Vidal"); // Unificado
                 admin1.setEmail("ga.vidal@duocuc.cl");
-                admin1.setPhone("20123123-2");   // Variable phone original
+                admin1.setPhone("912345678");   // Variable phone original
                 admin1.setPassword(" ");
                 admin1.addRole(adminRole);
                 authService.register(admin1);
@@ -68,7 +68,7 @@ public class AuthInitData {
                 User admin2 = new User();
                 admin2.setName("Raul Fernandez"); // Unificado
                 admin2.setEmail("ra.fernandez@duocuc.cl");
-                admin2.setPhone("20456789-5");    // Variable phone original
+                admin2.setPhone("949357329");    // Variable phone original
                 admin2.setPassword("123");
                 admin2.addRole(adminRole);
                 authService.register(admin2);
@@ -86,7 +86,7 @@ public class AuthInitData {
                 User doctor2 = new User();
                 doctor2.setName("María González");
                 doctor2.setEmail("maria.gonzalez@smartpaws.cl");
-                doctor2.setPhone("+56987654321");
+                doctor2.setPhone("987654321");
                 doctor2.setPassword("Doctor123!");
                 doctor2.addRole(doctorRole);
                 authService.register(doctor2);
@@ -95,7 +95,7 @@ public class AuthInitData {
                 User doctor3 = new User();
                 doctor3.setName("Jorge Silva");
                 doctor3.setEmail("jorge.silva@smartpaws.cl");
-                doctor3.setPhone("+56911223344");
+                doctor3.setPhone("911223344");
                 doctor3.setPassword("Doctor123!");
                 doctor3.addRole(doctorRole);
                 authService.register(doctor3);
@@ -104,7 +104,7 @@ public class AuthInitData {
                 User doctor4 = new User();
                 doctor4.setName("Ana Rojas");
                 doctor4.setEmail("ana.rojas@smartpaws.cl");
-                doctor4.setPhone("+56922334455");
+                doctor4.setPhone("922334455");
                 doctor4.setPassword("Doctor123!");
                 doctor4.addRole(doctorRole);
                 authService.register(doctor4);
@@ -113,7 +113,7 @@ public class AuthInitData {
                 User doctor5 = new User();
                 doctor5.setName("Luis Pérez");
                 doctor5.setEmail("luis.perez@smartpaws.cl");
-                doctor5.setPhone("+56933445566");
+                doctor5.setPhone("933445566");
                 doctor5.setPassword("Doctor123!");
                 doctor5.addRole(doctorRole);
                 authService.register(doctor5);
