@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservice.auth.dto.LoginRequest;
+import com.microservice.auth.dto.PasswordResetRequest;
+import com.microservice.auth.dto.ResetPasswordByEmailDto;
+import com.microservice.auth.dto.UpdateProfileRequest;
 import com.microservice.auth.dto.UpdateRoleRequest;
 import com.microservice.auth.dto.UserDetailDto;
 import com.microservice.auth.dto.UserListDto;
@@ -32,16 +36,12 @@ import com.microservice.auth.model.Role;
 import com.microservice.auth.model.User;
 import com.microservice.auth.repository.RoleRepository;
 import com.microservice.auth.service.AuthService;
-import com.microservice.auth.service.ImageService;
 
 @WebMvcTest(AuthController.class)
 public class AuthControllerTest {
 
     @MockBean
     private AuthService authService;
-
-    @MockBean
-    private ImageService imageService;
 
     @MockBean
     private RoleRepository roleRepository;
@@ -57,6 +57,7 @@ public class AuthControllerTest {
     private Role doctorRole;
     private LoginRequest loginRequest;
     private UpdateRoleRequest updateRoleRequest;
+    private UpdateProfileRequest updateProfileRequest;
     private List<UserListDto> userListDto;
     private List<UserDetailDto> userDetailDtoList;
     private UserDetailDto userDetailDto;
@@ -71,7 +72,7 @@ public class AuthControllerTest {
         userTest.setId(1L);
         userTest.setName("Juan Pérez");
         userTest.setEmail("juan@test.com");
-        userTest.setPassword(null);
+        userTest.setPassword("password123");
         userTest.setPhone("123456789");
         userTest.addRole(userRole);
 
@@ -82,10 +83,15 @@ public class AuthControllerTest {
         updateRoleRequest = new UpdateRoleRequest();
         updateRoleRequest.setRol("ADMIN");
 
+        updateProfileRequest = new UpdateProfileRequest();
+        updateProfileRequest.setName("Juan Pérez Actualizado");
+        updateProfileRequest.setPhone("987654321");
+
         userListDto = Arrays.asList(new UserListDto(1L, "Juan Pérez", "USER"));
 
-        userDetailDto = new UserDetailDto(1L, "USER", "Juan Pérez", "juan@test.com", "123456789", null);
-        doctorDetailDto = new UserDetailDto(2L, "DOCTOR", "Dr. Carlos", "doctor@test.com", "987654321", null);
+        // Actualizado: sin hasProfileImage
+        userDetailDto = new UserDetailDto(1L, "USER", "Juan Pérez", "juan@test.com", "123456789");
+        doctorDetailDto = new UserDetailDto(2L, "DOCTOR", "Dr. Carlos", "doctor@test.com", "987654321");
 
         userDetailDtoList = Arrays.asList(userDetailDto);
     }
@@ -96,6 +102,7 @@ public class AuthControllerTest {
         newUser.setEmail("nuevo@test.com");
         newUser.setPassword("password123");
         newUser.setName("Nuevo Usuario");
+        newUser.setPhone("123456789");
 
         when(authService.register(any(User.class))).thenReturn(userDetailDto);
 
@@ -111,6 +118,8 @@ public class AuthControllerTest {
     void testRegister_EmailDuplicado() throws Exception {
         User newUser = new User();
         newUser.setEmail("duplicado@test.com");
+        newUser.setPassword("password123");
+        newUser.setName("Usuario Duplicado");
 
         when(authService.register(any(User.class)))
                 .thenThrow(new RuntimeException("El email ya está en uso"));
@@ -291,16 +300,19 @@ public class AuthControllerTest {
         User doctorUser = new User();
         doctorUser.setEmail("doctor@test.com");
         doctorUser.setName("Dr. Carlos");
+        doctorUser.setPassword("Doctor123!");
+        doctorUser.setPhone("987654321");
         doctorUser.addRole(doctorRole);
 
-        when(roleRepository.findByName("DOCTOR")).thenReturn(java.util.Optional.of(doctorRole));
+        when(roleRepository.findByName("DOCTOR")).thenReturn(Optional.of(doctorRole));
         when(authService.register(any(User.class))).thenReturn(doctorDetailDto);
 
         mockMvc.perform(post("/auth/doctor/create")
                 .param("adminRol", "ADMIN")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(doctorUser)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.rol").value("DOCTOR"));
     }
 
     @Test
@@ -313,5 +325,95 @@ public class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(doctorUser)))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void testUpdateUserProfile_JsonAndOK() throws Exception {
+        UserDetailDto updatedDto = new UserDetailDto(
+            1L, "USER", "Juan Pérez Actualizado", "juan@test.com", "987654321"
+        );
+        
+        when(authService.updateUserProfile(eq(1L), eq("Juan Pérez Actualizado"), eq("987654321")))
+            .thenReturn(updatedDto);
+
+        mockMvc.perform(put("/auth/user/1/profile")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateProfileRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Juan Pérez Actualizado"))
+                .andExpect(jsonPath("$.phone").value("987654321"));
+    }
+
+    @Test
+    void testUpdateUserProfile_UsuarioNoEncontrado() throws Exception {
+        when(authService.updateUserProfile(eq(999L), any(), any()))
+            .thenThrow(new RuntimeException("Usuario no encontrado"));
+
+        mockMvc.perform(put("/auth/user/999/profile")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateProfileRequest)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testForgotPassword_EmailValido() throws Exception {
+        PasswordResetRequest request = new PasswordResetRequest();
+        request.setEmail("juan@test.com");
+
+        doNothing().when(authService).verifyEmailForReset("juan@test.com");
+
+        mockMvc.perform(post("/auth/forgot-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Email verificado correctamente"));
+    }
+
+    @Test
+    void testForgotPassword_EmailNoExiste() throws Exception {
+        PasswordResetRequest request = new PasswordResetRequest();
+        request.setEmail("noexiste@test.com");
+
+        doThrow(new RuntimeException("No existe un usuario con ese email"))
+            .when(authService).verifyEmailForReset("noexiste@test.com");
+
+        mockMvc.perform(post("/auth/forgot-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void testResetPasswordByEmail_Exitoso() throws Exception {
+        ResetPasswordByEmailDto request = new ResetPasswordByEmailDto();
+        request.setEmail("juan@test.com");
+        request.setNewPassword("NewPass123!");
+
+        doNothing().when(authService).resetPasswordByEmail("juan@test.com", "NewPass123!");
+
+        mockMvc.perform(post("/auth/reset-password-by-email")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Tu contraseña ha sido actualizada exitosamente"));
+    }
+
+    @Test
+    void testResetPasswordByEmail_EmailNoExiste() throws Exception {
+        ResetPasswordByEmailDto request = new ResetPasswordByEmailDto();
+        request.setEmail("noexiste@test.com");
+        request.setNewPassword("NewPass123!");
+
+        doThrow(new RuntimeException("No existe un usuario con ese email"))
+            .when(authService).resetPasswordByEmail("noexiste@test.com", "NewPass123!");
+
+        mockMvc.perform(post("/auth/reset-password-by-email")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
     }
 }

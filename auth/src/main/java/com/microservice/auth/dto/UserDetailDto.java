@@ -24,6 +24,4 @@ public class UserDetailDto {
     
     @Schema(description = "Teléfono de contacto")
     private String phone;
-    
-    // ELIMINADO: hasProfileImage - ya no manejamos imágenes en backend
 }
