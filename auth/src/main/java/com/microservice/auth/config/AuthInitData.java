@@ -60,7 +60,7 @@ public class AuthInitData {
                 admin1.setName("Gabriel Vidal"); // Unificado
                 admin1.setEmail("ga.vidal@duocuc.cl");
                 admin1.setPhone("20123123-2");   // Variable phone original
-                admin1.setPassword("password123");
+                admin1.setPassword(" ");
                 admin1.addRole(adminRole);
                 authService.register(admin1);
 

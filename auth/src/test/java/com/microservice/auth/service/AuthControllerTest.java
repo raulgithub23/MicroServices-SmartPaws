@@ -1,4 +1,4 @@
-package com.microservice.auth.controller;
+package com.microservice.auth.service;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -24,6 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microservice.auth.controller.AuthController;
 import com.microservice.auth.dto.LoginRequest;
 import com.microservice.auth.dto.UpdateRoleRequest;
 import com.microservice.auth.dto.UserDetailDto;
@@ -31,8 +32,6 @@ import com.microservice.auth.dto.UserListDto;
 import com.microservice.auth.model.Role;
 import com.microservice.auth.model.User;
 import com.microservice.auth.repository.RoleRepository;
-import com.microservice.auth.service.AuthService;
-import com.microservice.auth.service.ImageService;
 
 @WebMvcTest(AuthController.class)
 public class AuthControllerTest {

@@ -26,7 +26,7 @@ public class AuthService {
     @Autowired
     private RoleRepository roleRepository;
 
-    public User register(User user) {
+    public UserDetailDto register(User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new RuntimeException("El email ya está en uso");
         }
@@ -41,11 +41,10 @@ public class AuthService {
         }
 
         User saved = userRepository.save(user);
-        saved.setPassword(null);
-        return saved;
+        return mapUserToDetailDto(saved);
     }
 
-    public User login(String email, String password) {
+    public UserDetailDto login(String email, String password) {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
 
@@ -53,16 +52,14 @@ public class AuthService {
             throw new RuntimeException("Credenciales inválidas");
         }
 
-        user.setPassword(null);
-        return user;
+        return mapUserToDetailDto(user);
     }
 
-    public User getUserById(Long id) {
+    public UserDetailDto getUserById(Long id) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         
-        user.setPassword(null);
-        return user;
+        return mapUserToDetailDto(user);
     }
 
     public List<UserListDto> getAllUsers() {
@@ -121,7 +118,7 @@ public class AuthService {
     }
 
     @Transactional
-    public User updateUserRole(Long userId, String newRoleName) {
+    public UserDetailDto updateUserRole(Long userId, String newRoleName) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         
@@ -132,8 +129,7 @@ public class AuthService {
         user.addRole(newRole);
         
         User updated = userRepository.save(user);
-        updated.setPassword(null);
-        return updated;
+        return mapUserToDetailDto(updated);
     }
 
     public void deleteUser(Long userId) {
@@ -143,7 +139,7 @@ public class AuthService {
         userRepository.deleteById(userId);
     }
     
-    public User updateUserProfile(Long userId, String name, String phone) {
+    public UserDetailDto updateUserProfile(Long userId, String name, String phone) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         
@@ -151,8 +147,7 @@ public class AuthService {
         user.setPhone(phone);
         
         User updated = userRepository.save(user);
-        updated.setPassword(null);
-        return updated;
+        return mapUserToDetailDto(updated);
     }
 
     @Transactional

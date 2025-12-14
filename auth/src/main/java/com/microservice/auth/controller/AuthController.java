@@ -44,9 +44,9 @@ public class AuthController {
 
     @PostMapping("/register")
     @Operation(summary = "Registrar un nuevo usuario")
-    public ResponseEntity<User> register(@RequestBody User user) {
+    public ResponseEntity<UserDetailDto> register(@RequestBody User user) {
         try {
-            User registered = service.register(user);
+            UserDetailDto registered = service.register(user);
             return ResponseEntity.status(HttpStatus.CREATED).body(registered);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(null);
@@ -55,9 +55,9 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Iniciar sesión")
-    public ResponseEntity<User> login(@RequestBody LoginRequest req) {
+    public ResponseEntity<UserDetailDto> login(@RequestBody LoginRequest req) {
         try {
-            User user = service.login(req.getEmail(), req.getPassword());
+            UserDetailDto user = service.login(req.getEmail(), req.getPassword());
             return ResponseEntity.ok(user);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
@@ -66,9 +66,9 @@ public class AuthController {
 
     @GetMapping("/user/{id}")
     @Operation(summary = "Obtener usuario por ID")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserDetailDto> getUserById(@PathVariable Long id) {
         try {
-            User user = service.getUserById(id);
+            UserDetailDto user = service.getUserById(id);
             return ResponseEntity.ok(user);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -142,7 +142,7 @@ public class AuthController {
                     .body("Acceso denegado");
             }
 
-            User updated = service.updateUserRole(id, request.getRol());
+            UserDetailDto updated = service.updateUserRole(id, request.getRol());
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -201,7 +201,7 @@ public class AuthController {
             
             doctorUser.addRole(doctorRole);
             
-            User registered = service.register(doctorUser);
+            UserDetailDto registered = service.register(doctorUser);
             return ResponseEntity.status(HttpStatus.CREATED).body(registered);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -215,7 +215,7 @@ public class AuthController {
         @RequestBody UpdateProfileRequest request
     ) {
         try {
-            User updated = service.updateUserProfile(id, request.getName(), request.getPhone());
+            UserDetailDto updated = service.updateUserProfile(id, request.getName(), request.getPhone());
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
